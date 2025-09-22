@@ -10,6 +10,20 @@
 #	sleep 5
 #done
 
+#Функция для изменения формата даты.
+translate_date () {
+	echo "14/Aug/2019:04:12:10" | sed 's/:/ /' | awk -F'[/ ]' '
+	{
+    # Создаем массив с номерами месяцев
+    months["Jan"] = "01"; months["Feb"] = "02"; months["Mar"] = "03";
+    months["Apr"] = "04"; months["May"] = "05"; months["Jun"] = "06";
+    months["Jul"] = "07"; months["Aug"] = "08"; months["Sep"] = "09";
+    months["Oct"] = "10"; months["Nov"] = "11"; months["Dec"] = "12";
+    
+    printf "%s-%s-%s %s\n", $3, months[$2], $1, $4
+	}'
+}
+
 #Проверка запущен ли в данный момент скрипт
 if [ -n "$(ps aux | grep 'parslog.sh' | grep -v grep)" ]
 then
@@ -31,6 +45,26 @@ else
 	echo "Список всех кодов HTTP ответа с указанием их кол-ва"
 	grep -Eo ' [1-5][0-5,9][0-9] [0-9]{1,} ' access.log | awk '{print $1}' | sort | uniq -c | sort -nr
 fi
+
+```
+
+Содержимое тестового файла p1.sh  
+```
+#!/bin/bash
+
+#Преобразование даты
+#echo "14/Aug/2019:04:12:10" | sed 's/:/ /' | awk -F'[/ ]' '
+awk -F'[][]' '{print $2}' access.log | awk '{print $1}' | sed 's/:/ /' | awk -F'[/ ]' '
+{
+    # Создаем массив с номерами месяцев
+    months["Jan"] = "01"; months["Feb"] = "02"; months["Mar"] = "03";
+    months["Apr"] = "04"; months["May"] = "05"; months["Jun"] = "06";
+    months["Jul"] = "07"; months["Aug"] = "08"; months["Sep"] = "09";
+    months["Oct"] = "10"; months["Nov"] = "11"; months["Dec"] = "12";
+    
+    printf "%s-%s-%s %s\n", $3, months[$2], $1, $4
+}'
+
 ```
 
 ```
