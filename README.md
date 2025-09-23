@@ -29,6 +29,8 @@ if [ -n "$(ps aux | grep 'parslog.sh' | grep -v grep)" ]
 then
 	echo "Срипт уже parslog.sh запущен"
 else
+	
+
 	echo "Наибольшее количество запросов было со следующих IP адресов"
 	awk '{print $1}' access.log | sort | uniq -c | sort -nr | head
 	echo
@@ -46,25 +48,43 @@ else
 	grep -Eo ' [1-5][0-5,9][0-9] [0-9]{1,} ' access.log | awk '{print $1}' | sort | uniq -c | sort -nr
 fi
 
+awk -F'[][]' '{print $2}' access.log | head
+
+
 ```
 
 Содержимое тестового файла p1.sh  
 ```
 #!/bin/bash
 
-#Преобразование даты
-#echo "14/Aug/2019:04:12:10" | sed 's/:/ /' | awk -F'[/ ]' '
-awk -F'[][]' '{print $2}' access.log | awk '{print $1}' | sed 's/:/ /' | awk -F'[/ ]' '
-{
-    # Создаем массив с номерами месяцев
-    months["Jan"] = "01"; months["Feb"] = "02"; months["Mar"] = "03";
-    months["Apr"] = "04"; months["May"] = "05"; months["Jun"] = "06";
-    months["Jul"] = "07"; months["Aug"] = "08"; months["Sep"] = "09";
-    months["Oct"] = "10"; months["Nov"] = "11"; months["Dec"] = "12";
-    
-    printf "%s-%s-%s %s\n", $3, months[$2], $1, $4
-}'
+#Последнее записанное время
+lasttime=''
+#Строка для передачи в awk
+stracs=''
 
+#Преобразование даты в секунды
+#echo "14/Aug/2019:04:12:10" | sed 's/:/ /' | awk -F'[/ ]' '
+translate_date () {
+    awk -v str="$stract" -F'[][]' '{print $2}' | awk '{print $1}' | sed 's/:/ /' | awk -F'[/ ]' '
+    {
+        # Создаем массив с номерами месяцев
+        months["Jan"] = "01"; months["Feb"] = "02"; months["Mar"] = "03";
+        months["Apr"] = "04"; months["May"] = "05"; months["Jun"] = "06";
+        months["Jul"] = "07"; months["Aug"] = "08"; months["Sep"] = "09";
+        months["Oct"] = "10"; months["Nov"] = "11"; months["Dec"] = "12";
+        
+        printf "%s-%s-%s %s\n", $3, months[$2], $1, $4
+    }' | xargs -I {} date -d "{}" +%s
+}
+
+
+#Файл для хранения последней даты обработки
+if ! ([ -f "./time_pars" ] && [ -s "./time_pars" ]); then
+    stracs="$(sed -n '1p' access.log)"
+    echo "$stracs" | translate_date
+else
+    echo "Существует"
+fi
 ```
 
 ```
