@@ -14,7 +14,6 @@
 #	sleep 5
 #done
 
-
 #Функция для изменения формата даты.
 # translate_date () {
 # 	echo "14/Aug/2019:04:12:10" | sed 's/:/ /' | awk -F'[/ ]' '
@@ -59,6 +58,10 @@ fi
 ```
 ---
 
+
+
+
+
 <b>p1.sh</b>  
 ```
 #!/bin/bash
@@ -67,7 +70,7 @@ lasttime='' #Последнее записанное время
 stracs='' #Строка для передачи в awk
 time_start='' #Время начала в логе для вывода статистики за час
 time_end='' #Время окончания в логе для вывода статистики за час
-time_line='' #время в обрабатываемой строке
+time_line=0 #время в обрабатываемой строке
 
 #Преобразование даты в секунды
 #echo "14/Aug/2019:04:12:10" | sed 's/:/ /' | awk -F'[/ ]' '
@@ -92,40 +95,62 @@ pars1hour () {
 	time_start="$(sed -n '1p' time_pars)"
 	let "time_end=$time_start+3600"
 
-	#time_line=0
+	# надо что-то сделать с time_line, не надо присваивать ему 0. Первое условие вощзможно лишнее. Надо что-то сделать с первой и последней стоками
 	time_line=0
 	while IFS= read -r stracs
-	do		
-		#Пока $time_line больше $time_start и меньше либо равно time_end
-		if [ "$time_line" -lt "$time_start" ]; then time_line="$(echo "$stracs" | translate_date)"
-		elif [ "$time_line" -ge "$time_start" ] && [ "$time_line" -le "$time_end" ]; then
-			time_line="$(echo "$stracs" | translate_date)"
-			#echo $time_line > ./time_pars
+	do
+		time_line="$(echo "$stracs" | translate_date)"
+	#	echo $time_line > time_pars
+		if [ "$time_line" -ge "$time_start" ] && [ "$time_line" -le "$time_end" ]; then
 			echo $stracs
-		else 
-			echo $time_line > ./time_pars
-			exit
+			echo $time_line > time_pars
+
 		fi
+		if [ "$time_line" -gt "$time_end" ]; then exit; fi
+		#Пока $time_line больше $time_start и меньше либо равно time_end
+		# if [ "$time_line" -lt "$time_start" ]; then
+		# 	if [ "$time_line" -eq 0 ]; then #Происходит 1 раз в случае если time_pars не существует или пустой
+		# 		echo $stracs
+		# 	fi
+		# 	time_line="$(echo "$stracs" | translate_date)"
+
+		# elif [ "$time_line" -ge "$time_start" ] && [ "$time_line" -le "$time_end" ]; then
+		# 	time_line="$(echo "$stracs" | translate_date)"
+		# 	echo $time_line > time_pars
+		# 	echo $stracs
+		# else 
+		# 	#echo $time_line > time_pars
+		# 	exit
+		# fi
 		#cat access.log > access_test.log
 		#read -r line
 		#echo 
 	done < access.log
+#	echo $time_line > time_pars
 }
 
 #Файл для хранения последней даты обработки time_pars
-#Если файла не существует или он пустой, то записываем в него время из первой строки access.log
-if ! ([ -f "./time_pars" ] && [ -s "./time_pars" ]); then
+#Если файла time_pars не существует или он пустой, то записываем в него время из первой строки access.log
+if ! ([ -f "time_pars" ] || [ -s "time_pars" ]); then
     stracs="$(sed -n '1p' access.log)"
-    echo "$stracs" | translate_date > ./time_pars
-	#pars1hour #> ./access1hour.log
+    echo "$stracs" | translate_date > time_pars
+	#time_line="$(echo "$stracs" | translate_date)"
+
+	pars1hour > access1hour.log
 	#echo $time_line > ./time_pars
 else
-   pars1hour #> access1hour.log
+   pars1hour > access1hour.log
    #echo $time_line > ./time_pars
 fi
 #echo $time_line
 ```
 ---
+
+
+
+
+
+
 <b>translate_time.sh</b>
 ```
 #!/bin/bash
