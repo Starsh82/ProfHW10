@@ -84,6 +84,7 @@ sendmail () {
 	parsing >> mailstat # файл с письмом для отправки
 	echo "Время окончания обрабатываемого диапазона:" >> mailstat
 	TZ=Europe/Moscow date -d "@$time2" >> mailstat
+	cp mailstat "mailstat_$(date +"%Y%m%d_%H%M%S")"
 }
 
 #Проверка запущен ли в данный момент скрипт
